@@ -1,0 +1,153 @@
+.tox.tox-tinymce-aux,
+.tox-fullscreen .tox.tox-tinymce-aux {
+  z-index: 2000 !important;
+}
+.ag-header-cell-label {
+  justify-content: center;
+}
+.ag-cell-normal-height {
+  text-align: center;
+}
+.ag-left-aligned-cell {
+  text-align: left;
+}
+.ag-header-cell {
+  background-color: #666666;
+  color: #ebebeb;
+  padding-left: 2px !important;
+  padding-right: 2px !important;
+}
+.ag-header-cell-text {
+  white-space: normal !important;
+  text-align: center !important;
+}
+.ag-header-cell:not(:last-child) {
+  border-right: 1px solid #cbcbcb !important;
+}
+.ag-cell:not(:last-child) {
+  border-right: 1px solid #cbcbcb !important;
+}
+.ag-cell {
+  padding-left: 1px !important;
+  padding-right: 1px !important;
+}
+.ag-row {
+  border-width: 1px !important;
+  border-color: #cbcbcb !important;
+}
+.react-checkbox-tree label,
+.rct-title {
+  white-space: nowrap;
+}
+.react-checkbox-tree {
+  width: 100%;
+  overflow-x: auto;
+  flex-direction: row !important;
+}
+.hidden {
+  display: none;
+}
+.ag-colspan-cell {
+  background-color: #00426a !important;
+  color: #fff !important;
+  font-weight: bold !important;
+}
+.unread-approval {
+  background-color: #dddddd !important;
+  color: #464646 !important;
+  font-weight: bold;
+}
+.ag-header-group-cell {
+  background-color: #666666;
+  color: #ebebeb;
+
+  font-weight: bold;
+}
+
+.ag-header-group-cell-label {
+  justify-content: center;
+}
+
+.ag-header-group-cell:not(:last-child) {
+  border-right: 0.5px solid #cbcbcb !important;
+}
+
+.line_stock_custom {
+  color: #00ab55;
+}
+.ag-header-cell.ag-header-cell-sortable.custom-header {
+  top: -46px;
+  height: 100px;
+  text-overflow: unset;
+}
+.ag-header-row {
+  background-color: #666666;
+}
+.ag-theme-balham .ag-header-cell::after,
+.ag-theme-balham .ag-header-group-cell::after {
+  height: 100% !important;
+  margin-top: 0 !important;
+}
+
+.ag-header-viewport,
+.ag-header-row {
+  overflow: hidden !important;
+}
+.link-custom {
+  text-decoration: underline;
+  cursor: pointer;
+}
+.ag-cell-qc-result-fail {
+  color: red;
+  font-weight: bold;
+  cursor: pointer;
+}
+.ag-cell-qc-result-success {
+  color: green;
+  font-weight: bold;
+  cursor: pointer;
+}
+.ag-cell-qc-result-planned {
+  font-weight: bold;
+  cursor: pointer;
+}
+.ag-cell-inspection-history-have-attachment {
+  font-weight: bold;
+  color: blue;
+  cursor: pointer;
+}
+.color-red {
+  color: #ff1a1a !important;
+}
+.resize-handle-vertical {
+    background-color: inherit !important;
+    border-top: 1px solid #bdc3c7;
+}
+.resize-handle-horizon {
+    background-color: inherit !important;
+    border-left: 1px solid #bdc3c7;
+}
+.react-checkbox-tree ol ol {
+  padding-left: 10px !important;
+}
+.rct-collapse, .rct-checkbox, .rct-node-icon, .rct-title {
+  padding: 0 !important;
+}
+.react-checkbox-tree.rct-native-display input {
+  margin: 0 4px;
+}
+.react-date-picker {
+  z-index: 1000 !important;
+  width: 100%;
+}
+
+.react-date-picker__wrapper {
+  border: 1px solid #d3d3d3 !important;
+}
+
+.react-calendar__tile--hasActive {
+  background-color: #00ab55 !important;
+}
+.react-date-picker__clear-button {
+  display: none;
+}

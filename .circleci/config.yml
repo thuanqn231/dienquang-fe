@@ -1,0 +1,30 @@
+version: 2.1
+
+orbs:
+  aws-ecr: circleci/aws-ecr@8.1.2
+  aws-ecs: circleci/aws-ecs@2.2.1
+
+workflows:
+  build_and_push_image:
+    jobs:
+      - aws-ecr/build-and-push-image:
+          dockerfile: /Dockerfile
+          path: .
+          repo: dthaus-fe
+          tag: 'latest'
+          public-registry: true
+          filters:
+            branches:
+              only:
+                - main
+      - aws-ecs/deploy-service-update:
+          requires:
+                - aws-ecr/build-and-push-image
+          filters:
+            branches:
+              only:
+                - main
+          family: '${AWS_RESOURCE_NAME_PREFIX}'
+          cluster-name: api-cluster
+          container-image-name-updates: 'container=${AWS_RESOURCE_NAME_PREFIX},tag=latest'
+          service-name: '${AWS_RESOURCE_NAME_PREFIX}-service'
