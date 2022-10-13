@@ -937,6 +937,18 @@
       "poType.name": "Loại PO",
       "planQty": "SL theo kế hoạch"
     },
+    "productionOrderInputActualForm": {
+      "row_index": "No.",
+      "intputTime": "Time",
+      "workStation.name": "Work Station",
+      "prodQty": "Actual Qty"
+    },
+    "productionOrderInputDefectForm": {
+      "row_index": "No.",
+      "intputTime": "Time",
+      "workStation.name": "Work Station",
+      "defectQty": "Defect Qty"
+    },
     "businessPartnerGroupList": {
       "row_index": "STT",
       "pk.factoryName": "Nhà máy",
@@ -2530,7 +2542,8 @@
     "register_factory_sample_rule_successful": "Factory Sample Rule was created successfully",
     "update_factory_sample_rule_successful": "Factory Sample Rule was updated successfully",
     "factory_sample_rules_delete_successful": "Factory Sample Rule was deleted successfully",
-    "please_select_1_factory_sample_rules": "Please select 1 Factory Sample Rule"
+    "please_select_1_factory_sample_rules": "Please select 1 Factory Sample Rule",
+    "production_order_was_delected_successfully": "Xóa kế hoạch sản xuất thành công"
   },
   "fmb": {
     "production_status": "Trạng thái sản xuất",

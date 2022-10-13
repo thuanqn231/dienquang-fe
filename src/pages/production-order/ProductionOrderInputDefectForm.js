@@ -21,7 +21,7 @@ import { useSelector } from '../../redux/store';
 import useAuth from '../../hooks/useAuth';
 import useSettings from '../../hooks/useSettings';
 import useLocales from '../../hooks/useLocales';
-import { fDateTime, fDate, dateStringToLocalDate } from '../../utils/formatTime';
+import { fDate } from '../../utils/formatTime';
 
 // utils
 import { getGridConfig } from '../../utils/pageConfig';
@@ -29,7 +29,7 @@ import { isNullPk, getSafeValue } from '../../utils/formatString';
 import ChangeFactoryWarning from '../common/ChangeFactoryWarning';
 // ----------------------------------------------------------------------
 
-ProductionOrderRegistrationForm.propTypes = {
+ProductionOrderInputDefectForm.propTypes = {
   isEdit: PropTypes.bool,
   currentData: PropTypes.object,
   onCancel: PropTypes.func,
@@ -38,7 +38,7 @@ ProductionOrderRegistrationForm.propTypes = {
   pageCode: PropTypes.string
 };
 
-const tableCode = 'productionOrderRegistrationForm';
+const tableCode = 'productionOrderInputDefectForm';
 const curDateTime = new Date();
 const defaultPlanStartDate = new Date(
   curDateTime.getFullYear(),
@@ -80,7 +80,7 @@ const defaultMaxPlanEndDate = new Date(
   59,
   59
 );
-export default function ProductionOrderRegistrationForm({
+export default function ProductionOrderInputDefectForm({
   isEdit,
   currentData,
   onCancel,
@@ -90,6 +90,7 @@ export default function ProductionOrderRegistrationForm({
 }) {
   const { approvedBOMDropdown } = useSelector((state) => state.materialMaster);
   const { themeAgGridClass } = useSettings();
+  const { user } = useAuth();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const { commonDropdown } = useAuth();
   const [isOpenConfirmModal, setIsOpenConfirmModal] = useState(false);
@@ -103,19 +104,23 @@ export default function ProductionOrderRegistrationForm({
   const [minPlanStartDate, setMinPlanStartDate] = useState(defaultMinPlanStartDate);
   const [minPlanEndDate, setMinPlanEndDate] = useState(defaultMinPlanEndDate);
   const [maxPlanEndDate, setMaxPlanEndDate] = useState(defaultMaxPlanEndDate);
+  const [productionOrderDropDown, setProductionOrderDropDown] = useState([]);
+  const [productionOrder, setProductionOrder] = useState();
   const [modelCode, setModelCode] = useState({
     value: '',
     label: ''
   });
+  const [linePk, setLinePk] = useState();
   const [topModel, settopModel] = useState({
     value: '',
     label: ''
   });
   const [header, setHeader] = useState({
-    factory: '',
-    plant: '',
-    operation: '',
-    process: ''
+    prodOrderNo: '',
+    modelCode: '',
+    modelId: '',
+    modelDescription: '',
+    line: ''
   });
   const [timeConfig, setTimeConfig] = useState({
     hour: 6,
@@ -198,6 +203,10 @@ export default function ProductionOrderRegistrationForm({
     console.log('currentData', currentData);
   }, [currentData]);
 
+  useEffect(() => {
+    handleChangePlanDate(fDate(new Date()));
+  }, []);
+
   const splitTime = (time) => {
     if (time) {
       const split = time.split(':');
@@ -233,96 +242,59 @@ export default function ProductionOrderRegistrationForm({
     setIsOpenConfirmModal(false);
   };
 
-  const handleLoadTactTime = async (factory, planDate, modelCode, line) => {
-    if (!isEmpty(factory) && !isEmpty(planDate) && !isEmpty(modelCode) && !isEmpty(line)) {
-      const materialCode = approvedBOMDropdown.find((bom) => bom.value === modelCode)?.materialCode;
+  const handleLoadProductionOrder = async (factory, planDate) => {
+    console.log('user', !isEmpty(factory), !isEmpty(planDate));
+    if (!isEmpty(factory) && !isEmpty(planDate)) {
       const tactTimeResponse = await query({
-        url: '/v1/tact-time/tack-time-plan',
+        url: '/v1/productionOrder/search',
         featureCode: 'user.create',
         showErrorMessage: false,
         params: {
           factoryCode: factory,
-          applyStartDate: planDate,
-          materialCode,
-          line
+          from: planDate,
+          to: planDate,
+          state: 'RUNNING'
         }
       }).catch((error) => {
-        setFieldValue('tactTime', 0);
         console.error(error);
       });
       if (tactTimeResponse?.data) {
         const { data } = tactTimeResponse;
-        const tactTime = data?.time || 0;
-        setFieldValue('tactTime', tactTime);
-      } else {
-        setFieldValue('tactTime', 0);
-        enqueueSnackbar(`${translate(`message.not_found_tactime_with_material_code`)}: ${materialCode}`, {
-          variant: 'error',
-          action: (key) => (
-            <MIconButton size="small" onClick={() => closeSnackbar(key)}>
-              <Icon icon={closeFill} />
-            </MIconButton>
-          )
-        });
+        const productionOrderDropdown = data.map((prodOrder) => ({
+          factory: prodOrder.pk.factoryCode,
+          value: prodOrder.factoryPk,
+          label: prodOrder.prodOrderNo
+        }));
+        setProductionOrderDropDown(productionOrderDropdown);
       }
-    } else {
-      setFieldValue('tactTime', (isEdit && currentData?.tactTime) || 0);
+    }
+  };
+  const handleLoadDataProductionOrder = async (productionOrderId) => {
+    if (!isEmpty(productionOrderId)) {
+      query({
+        url: `/v1/productionOrder/${productionOrderId}`,
+        featureCode: 'user.create'
+      })
+        .then((res) => {
+          const { data } = res;
+          setFieldValue('modelCode', data.modelCode);
+          setFieldValue('modelId', data.modelId);
+          setFieldValue('modelDescription', data.modelDescription);
+          setFieldValue('line', data.line.name);
+          setLinePk(data.line.factoryPk);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     }
   };
 
   const handleChangePlanDate = (planDate) => {
     setFieldValue('planDate', fDate(planDate));
-    setMinPlanStartDate(
-      new Date(
-        planDate.getFullYear(),
-        planDate.getMonth(),
-        planDate.getDate(),
-        timeConfig.hour,
-        timeConfig.minute,
-        timeConfig.second
-      )
-    );
-    handleChangePlanStartDate(
-      new Date(
-        planDate.getFullYear(),
-        planDate.getMonth(),
-        planDate.getDate(),
-        timeConfig.hour,
-        timeConfig.minute,
-        timeConfig.second
-      )
-    );
-    handleChangePlanEndDate(
-      new Date(
-        planDate.getFullYear(),
-        planDate.getMonth(),
-        planDate.getDate() + 1,
-        timeConfig.hour - 1,
-        timeConfig.minute === '00' ? 59 : timeConfig.minute - 1,
-        timeConfig.second === '00' ? 59 : timeConfig.second - 1
-      )
-    );
-    setMinPlanEndDate(
-      new Date(
-        planDate.getFullYear(),
-        planDate.getMonth(),
-        planDate.getDate(),
-        timeConfig.hour,
-        timeConfig.minute,
-        timeConfig.second + 1
-      )
-    );
-    setMaxPlanEndDate(
-      new Date(
-        planDate.getFullYear(),
-        planDate.getMonth(),
-        planDate.getDate() + 1,
-        timeConfig.hour - 1,
-        timeConfig.minute === '00' ? 59 : timeConfig.minute - 1,
-        timeConfig.second === '00' ? 59 : timeConfig.second - 1
-      )
-    );
-    handleLoadTactTime(values.factory, planDate, values.modelCode, values.line);
+    handleLoadProductionOrder(user.factory.factoryCode, fDate(planDate));
+  };
+  const handleChangeProductionOrder = (prodOrder) => {
+    handleLoadDataProductionOrder(prodOrder);
   };
 
   const handleChangePlanStartDate = (startDate) => {
@@ -356,7 +328,7 @@ export default function ProductionOrderRegistrationForm({
     setFieldValue('modelDescription', getSafeValue(currentModelCode[0]?.modelDescription));
     setFieldValue('modelId', getSafeValue(currentModelCode[0]?.materialId));
     setFieldValue('modelVersion', getSafeValue(currentModelCode[0]?.version));
-    handleLoadTactTime(values.factory, values.planDate, modelCode, values.line);
+    handleLoadProductionOrder(user.factory.factoryCode, values.planDate);
   };
 
   const handleChangetopModel = (topModel) => {
@@ -366,56 +338,53 @@ export default function ProductionOrderRegistrationForm({
   };
 
   const handleAddProductionOrder = () => {
-    console.log('values', values);
     validateForm();
     const newRowData = [...rowData];
-    const currentFactory = values.factory;
-    const currentOperation = values.operation;
-    const currentLine = values.line;
-    const currentPOType = values.poType;
-
-    const currentLineObj = commonDropdown.lineDropdown.filter((line) => line.value === currentLine);
-    const currentPOTypeObj = commonDropdown.commonCodes.filter((commonCode) => commonCode.code === currentPOType);
+    const currentWorkStation = values.workStation;
+    const currentWorkStationObj = commonDropdown.workStationDropdown.filter(
+      (workStation) => workStation.value === currentWorkStation
+    );
     newRowData.push({
       factoryPk: `tmpId${rowIndex}`,
-      planDate: values.planDate,
+
+      workStation: {
+        factoryPk: currentWorkStation,
+        name: currentWorkStationObj[0].label
+      },
+      productionOrder: {
+        factoryPk: productionOrder
+      },
+      // inputTime: fDateTime(new Date()),
+      inputTime: new Date(),
+      defectQty: values.defectQty,
+      inputDate: values.planDate,
       modelCode: values.modelCode,
       modelId: values.modelId,
       modelDescription: values.modelDescription,
-      topModel: values.topModel,
-      modelVersion: values.modelVersion,
-      poType: {
-        code: currentPOType,
-        name: currentPOTypeObj[0].name
-      },
-      prodStatus: {
-        code: 'D019001'
-      },
-      line: {
-        factoryPk: currentLine,
-        name: currentLineObj[0].label
-      },
-
-      operation: values.operation,
-      startTime: values.planStartDate,
-      endTime: values.planEndDate,
-      tactTime: values.tactTime,
-      planQty: values.planQty,
+      line: values.line,
+      finalYn: '',
+      reflect: '',
       pk: {
-        factoryCode: values.factory
+        factoryCode: user.factory.factoryCode
       },
       state: 'RUNNING'
     });
     setHeader({
-      factory: values.factory,
-      operation: values.operation
+      prodOrderNo: currentWorkStation,
+      modelCode: values.modelCode,
+      modelId: values.modelId,
+      modelDescription: values.modelDescription,
+      line: values.line
     });
     console.log('newRowData', newRowData);
     updateData(newRowData);
     setRowIndex(rowIndex + 1);
     resetForm();
-    setFieldValue('factory', currentFactory);
-    setFieldValue('operation', currentOperation);
+    setFieldValue('prodOrderNo', productionOrder);
+    setFieldValue('line', values.line);
+    setFieldValue('modelCode', values.modelCode);
+    setFieldValue('modelId', values.modelId);
+    setFieldValue('modelDescription', values.modelDescription);
     clearMatr();
   };
 
@@ -449,27 +418,30 @@ export default function ProductionOrderRegistrationForm({
   };
 
   const setChildFieldsData = (data) => {
-    formik.setFieldValue('planDate', getSafeValue(data?.planDate));
-    formik.setFieldValue('planStartDate', getSafeValue(data?.startTime));
-    formik.setFieldValue('planEndDate', getSafeValue(data?.endTime));
-    formik.setFieldValue('tactTime', getSafeValue(data?.tactTime));
-    formik.setFieldValue('planQty', getSafeValue(data?.planQty));
-    formik.setFieldValue('poType', getSafeValue(data?.poType?.code));
-    formik.setFieldValue('line', getSafeValue(data?.line?.factoryPk));
+    formik.setFieldValue('prodOrderNo', getSafeValue(data?.productionOrder.factoryPk));
     formik.setFieldValue('modelCode', getSafeValue(data?.modelCode));
     formik.setFieldValue('modelId', getSafeValue(data?.modelId));
+    formik.setFieldValue('modelDescription', getSafeValue(data?.modelDescription));
+    formik.setFieldValue('line', getSafeValue(data?.line));
+    formik.setFieldValue('workStation', getSafeValue(data?.poType?.workStation.factoryPk));
+    formik.setFieldValue('defectQty', getSafeValue(data?.defectQty));
+    setFieldValue('prodOrderNo', getSafeValue(data?.productionOrder.factoryPk));
     setFieldValue('modelCode', getSafeValue(data?.modelCode));
-    setFieldValue('modelDescription', getSafeValue(data?.modelDescription));
     setFieldValue('modelId', getSafeValue(data?.modelId));
-    setFieldValue('modelVersion', getSafeValue(data?.modelVersion));
-    setFieldValue('topModel', getSafeValue(data?.topModel));
+    setFieldValue('modelDescription', getSafeValue(data?.modelDescription));
+    setFieldValue('line', getSafeValue(data?.line));
+    setFieldValue('workStation', getSafeValue(data?.poType?.workStation.factoryPk));
+    setFieldValue('defectQty', getSafeValue(data?.defectQty));
   };
 
   const clearOldValue = () => {
     resetForm();
     clearMatr();
-    setFieldValue('factory', header.factory);
-    setFieldValue('operation', header.operation);
+    setFieldValue('prodOrderNo', header.prodOrderNo);
+    setFieldValue('line', header.line);
+    setFieldValue('modelCode', header.modelCode);
+    setFieldValue('modelId', header.modelId);
+    setFieldValue('modelDescription', header.modelDescription);
     setSelectedRowId(null);
     setDisabledEdit(true);
   };
@@ -524,10 +496,11 @@ export default function ProductionOrderRegistrationForm({
       updateData(currentRowData);
       if (isEmpty(currentRowData)) {
         setHeader({
-          factory: '',
-          plant: '',
-          operation: '',
-          process: ''
+          prodOrderNo: '',
+          modelCode: '',
+          modelId: '',
+          modelDescription: '',
+          line: ''
         });
       }
       clearOldValue();
@@ -562,22 +535,23 @@ export default function ProductionOrderRegistrationForm({
       });
       try {
         mutate({
-          url: '/v1/productionOrder/create-v2',
+          url: '/v1/productionOrder/defect/create',
           data: {
-            planList: rowData
+            defect: rowData
           },
           method: 'post',
           featureCode: 'user.create'
         })
           .then((res) => {
             if (res.httpStatusCode === 200) {
+              console.log('res', res);
               resetForm();
               setSubmitting(false);
               clearMatr();
               onLoadData();
               setIsOpenConfirmModal(false);
               onCancel();
-              onCreatePlanSuccess(res.data[0].planId);
+              onCreatePlanSuccess(res.data[0].productionOrder.prodOrderNo);
             }
           })
           .catch((error) => {
@@ -652,39 +626,27 @@ export default function ProductionOrderRegistrationForm({
     }
   };
   const ProductionOrderSchema = Yup.object().shape({
-    factory: Yup.string().required('Factory is required'),
-    operation: Yup.string().required('Operation is required'),
     planDate: Yup.date().required('Plan Date is required'),
+    prodOrderNo: Yup.string().required('Production Order is required'),
     modelCode: Yup.string().required('Model Code is required'),
     modelId: Yup.string().required('Model Id is required'),
     modelDescription: Yup.string(),
-    topModel: Yup.string(),
-    modelVersion: Yup.string(),
-    planStartDate: Yup.date().required('Plan Start Date is required'),
-    tactTime: Yup.number().positive('Tact Time is required'),
     line: Yup.string().required('Line is required'),
-    planEndDate: Yup.date().required('Plan End Date is required'),
-    planQty: Yup.number().required('Plan Qty is required').min(1, 'Plan Qty must greater than 0'),
-    poType: Yup.string().required('PO Type is required')
+    workStation: Yup.string().required('Production Order is required'),
+    defectQty: Yup.number().required('Plan Qty is required').min(1, 'Plan Qty must greater than 0')
   });
 
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      factory: (isEdit && currentData?.factory) || '',
-      operation: (isEdit && currentData?.operation) || '',
+      prodOrderNo: (isEdit && currentData?.prodOrderNo) || '',
       planDate: (isEdit && currentData?.planDate) || fDate(new Date()),
       modelCode: (isEdit && currentData?.modelCode) || '',
       modelId: (isEdit && currentData?.modelId) || '',
       modelDescription: (isEdit && currentData?.modelDescription) || '',
-      topModel: (isEdit && currentData?.topModel) || '',
-      modelVersion: (isEdit && currentData?.modelVersion) || '',
-      planStartDate: (isEdit && currentData?.startTime) || planStartDate,
-      tactTime: (isEdit && currentData?.tactTime) || 0,
       line: (isEdit && currentData?.line?.factoryPk) || '',
-      planEndDate: (isEdit && currentData?.endTime) || planEndDate,
-      planQty: (isEdit && currentData?.planQty) || 0,
-      poType: (isEdit && currentData?.poType?.code) || ''
+      workStation: (isEdit && currentData?.line?.factoryPk) || '',
+      defectQty: (isEdit && currentData?.planQty) || 0
     },
     validationSchema: ProductionOrderSchema,
     onSubmit: async (values, { setSubmitting, setErrors }) => {
@@ -748,49 +710,6 @@ export default function ProductionOrderRegistrationForm({
       <Form noValidate autoComplete="off" onSubmit={handleSubmit}>
         <Card sx={{ pb: 1 }}>
           <Typography variant="subtitle1" sx={{ pl: 1 }}>
-            {translate(`typo.plan_header`)}
-          </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={12}>
-              <Card sx={{ px: 1, py: 1 }}>
-                <Stack spacing={1.5}>
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 3, sm: 2 }}>
-                    <Dropdown
-                      {...getFieldProps('factory')}
-                      id="factory"
-                      name="factory"
-                      label="Factory"
-                      size="small"
-                      required
-                      disabled={!isEmpty(rowData) || isEdit}
-                      onChange={handleChangeFactory}
-                      options={commonDropdown.factoryDropdown}
-                      errorMessage={touched.factory && errors.factory}
-                    />
-
-                    <Dropdown
-                      {...getFieldProps('operation')}
-                      id="operation"
-                      name="operation"
-                      label="Operation"
-                      size="small"
-                      required
-                      disabled={!isEmpty(rowData) || isEdit}
-                      onChange={handleChange}
-                      options={[
-                        { value: 'Main Plan', label: 'Main Plan' },
-                        { value: 'Sub Plan', label: 'Sub Plan' }
-                      ]}
-                      errorMessage={touched.operation && errors.operation}
-                    />
-                  </Stack>
-                </Stack>
-              </Card>
-            </Grid>
-          </Grid>
-        </Card>
-        <Card sx={{ pb: 1 }}>
-          <Typography variant="subtitle1" sx={{ pl: 1 }}>
             {translate(`typo.plan_detail`)}
           </Typography>
           <Grid container spacing={3}>
@@ -805,11 +724,29 @@ export default function ProductionOrderRegistrationForm({
                       onChange={(newValue) => {
                         handleChangePlanDate(newValue);
                       }}
-                      minDate={new Date()}
+                      // minDate={new Date()}
                       fullWidth
                       size="small"
                       required
+                      disabled={!isEmpty(rowData)}
                       errorMessage={touched.planDate && errors.planDate}
+                    />
+                    <Dropdown
+                      {...getFieldProps('prodOrderNo')}
+                      id="prodOrderNo"
+                      name="prodOrderNo"
+                      label="PO No"
+                      size="small"
+                      required
+                      onChange={(e) => {
+                        const prodOrderNo = e.target.value;
+                        setFieldValue('prodOrderNo', prodOrderNo);
+                        setProductionOrder(prodOrderNo);
+                        handleChangeProductionOrder(prodOrderNo);
+                      }}
+                      options={productionOrderDropDown}
+                      disabled={!isEmpty(rowData)}
+                      errorMessage={touched.prodOrderNo && errors.prodOrderNo}
                     />
                     <TextField
                       autoComplete="off"
@@ -817,25 +754,29 @@ export default function ProductionOrderRegistrationForm({
                       label="Model Code"
                       size="small"
                       required
+                      disabled
                       {...getFieldProps('modelCode')}
                       error={Boolean(touched.modelCode && errors.modelCode)}
                       helperText={touched.modelCode && errors.modelCode}
                     />
+                  </Stack>
+
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 3, sm: 2 }}>
                     <TextField
                       autoComplete="off"
                       fullWidth
                       label="Model ID"
                       size="small"
+                      disabled
                       required
                       {...getFieldProps('modelId')}
                       error={Boolean(touched.modelId && errors.modelId)}
                       helperText={touched.modelId && errors.modelId}
                     />
-                  </Stack>
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 3, sm: 2 }}>
                     <TextField
                       autoComplete="off"
                       fullWidth
+                      disabled
                       label="Model Description"
                       size="small"
                       {...getFieldProps('modelDescription')}
@@ -845,128 +786,52 @@ export default function ProductionOrderRegistrationForm({
                     <TextField
                       autoComplete="off"
                       fullWidth
-                      label="Top Model Code"
+                      label="Line Name"
                       size="small"
-                      {...getFieldProps('topModel')}
-                      error={Boolean(touched.topModel && errors.topModel)}
-                      helperText={touched.topModel && errors.topModel}
+                      disabled
+                      required
+                      {...getFieldProps('line')}
+                      error={Boolean(touched.line && errors.line)}
+                      helperText={touched.line && errors.line}
+                    />
+                  </Stack>
+                </Stack>
+              </Card>
+            </Grid>
+          </Grid>
+        </Card>
+        <Card sx={{ pb: 1 }}>
+          <Typography variant="subtitle1" sx={{ pl: 1 }}>
+            {/* {translate(`typo.plan_header`)} */}
+            Production Qty
+          </Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={12}>
+              <Card sx={{ px: 1, py: 1 }}>
+                <Stack spacing={1.5}>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 3, sm: 2 }}>
+                    <Dropdown
+                      {...getFieldProps('workStation')}
+                      id="workStation"
+                      name="workStation"
+                      label="Work Station"
+                      size="small"
+                      required
+                      // onChange={handleChangeFactory}
+                      options={commonDropdown.workStationDropdown.filter((workStation) => workStation.line === linePk)}
+                      errorMessage={touched.workStation && errors.workStation}
                     />
 
                     <TextField
                       autoComplete="off"
                       fullWidth
-                      label="Model Version"
-                      size="small"
-                      {...getFieldProps('modelVersion')}
-                      error={Boolean(touched.modelVersion && errors.modelVersion)}
-                      helperText={touched.modelVersion && errors.modelVersion}
-                    />
-                  </Stack>
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 3, sm: 2 }}>
-                    <DateTimePicker
-                      name="planStartDate"
-                      label="Plan Start Time"
-                      value={values.planStartDate}
-                      ampm={false}
-                      views={['month', 'day', 'hours', 'minutes', 'seconds']}
-                      inputFormat="yyyy-MM-dd HH:mm:ss"
-                      mask="____-__-__ __:__:__"
-                      onChange={(newValue) => {
-                        handleChangePlanStartDate(newValue);
-                      }}
-                      minDateTime={minPlanStartDate}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          fullWidth
-                          size="small"
-                          required
-                          onKeyDown={(e) => {
-                            e.preventDefault();
-                          }}
-                          error={Boolean(touched.planStartDate && errors.planStartDate)}
-                          helperText={touched.planStartDate && errors.planStartDate}
-                        />
-                      )}
-                    />
-                    <TextField
-                      autoComplete="off"
-                      fullWidth
-                      label="Tact Time"
+                      label="Defect Qty"
                       size="small"
                       type="number"
                       required
-                      {...getFieldProps('tactTime')}
-                      error={Boolean(touched.tactTime && errors.tactTime)}
-                      helperText={touched.tactTime && errors.tactTime}
-                    />
-                    <Dropdown
-                      {...getFieldProps('line')}
-                      id="line"
-                      name="line"
-                      label="Line Name"
-                      size="small"
-                      required
-                      onChange={(e) => {
-                        const line = e.target.value;
-                        setFieldValue('line', line);
-                      }}
-                      options={commonDropdown.lineDropdown.filter((line) => line.factory === values.factory)}
-                      errorMessage={touched.line && errors.line}
-                    />
-                  </Stack>
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 3, sm: 2 }}>
-                    <DateTimePicker
-                      name="planEndDate"
-                      label="Plan End Time"
-                      value={values.planEndDate}
-                      ampm={false}
-                      views={['month', 'day', 'hours', 'minutes', 'seconds']}
-                      inputFormat="yyyy-MM-dd HH:mm:ss"
-                      mask="____-__-__ __:__:__"
-                      onChange={(newValue) => {
-                        handleChangePlanEndDate(newValue);
-                      }}
-                      onKeyDown={(e) => {
-                        e.preventDefault();
-                      }}
-                      minDateTime={minPlanEndDate}
-                      maxDateTime={maxPlanEndDate}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          fullWidth
-                          size="small"
-                          required
-                          onKeyDown={(e) => {
-                            e.preventDefault();
-                          }}
-                          error={Boolean(touched.planEndDate && errors.planEndDate)}
-                          helperText={touched.planEndDate && errors.planEndDate}
-                        />
-                      )}
-                    />
-                    <TextField
-                      autoComplete="off"
-                      fullWidth
-                      label="Plan Qty"
-                      size="small"
-                      type="number"
-                      required
-                      {...getFieldProps('planQty')}
-                      error={Boolean(touched.planQty && errors.planQty)}
-                      helperText={touched.planQty && errors.planQty}
-                    />
-                    <Dropdown
-                      {...getFieldProps('poType')}
-                      id="poType"
-                      name="poType"
-                      label="PO Type"
-                      size="small"
-                      required
-                      onChange={handleChange}
-                      groupId="D020000"
-                      errorMessage={touched.poType && errors.poType}
+                      {...getFieldProps('defectQty')}
+                      error={Boolean(touched.defectQty && errors.defectQty)}
+                      helperText={touched.defectQty && errors.defectQty}
                     />
                   </Stack>
                 </Stack>
@@ -987,7 +852,7 @@ export default function ProductionOrderRegistrationForm({
               >
                 {translate(`button.add`)}
               </LoadingButton>
-              <Button
+              {/* <Button
                 sx={{ marginLeft: 1 }}
                 variant="contained"
                 onClick={onClickModify}
@@ -996,7 +861,7 @@ export default function ProductionOrderRegistrationForm({
                 disabled={disabledEdit}
               >
                 {translate(`button.modify`)}
-              </Button>
+              </Button> */}
               <Button
                 sx={{ marginLeft: 1 }}
                 variant="contained"

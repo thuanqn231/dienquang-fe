@@ -28,13 +28,13 @@ export const columnsProductionStatus = [
   { id: 'line', minWidth: 170, align: 'center' },
   { id: 'modelCode', minWidth: 100, align: 'center' },
   { id: 'description', minWidth: 100, align: 'center' },
-  { id: 'topModel', minWidth: 100, align: 'center' },
-  { id: 'eff', minWidth: 100, align: 'right' },
-  { id: 'itemQty', minWidth: 100, align: 'right' },
+  { id: 'modelCode', minWidth: 100, align: 'center' },
   { id: 'planQty', minWidth: 100, align: 'right' },
-  { id: 'targetQty', minWidth: 100, align: 'right' },
   { id: 'actualQty', minWidth: 100, align: 'right' },
-  { id: 'diff', minWidth: 100, align: 'right' }
+  { id: 'gap', minWidth: 100, align: 'right' },
+  { id: 'eff', minWidth: 100, align: 'right' }
+  // { id: 'actualQty', minWidth: 100, align: 'right' },
+  // { id: 'diff', minWidth: 100, align: 'right' }
 ];
 
 export const columnsStuffingStatus = [
@@ -201,6 +201,14 @@ export function generateEff(totalTactime, numberOfLine = 1) {
     return '-';
   }
   const eff = Math.round((totalTactime / (24 * 60 * 60 * numberOfLine)) * 100);
+  return eff > 100 ? 100 : eff;
+}
+
+export function generatePercent(planQty, actualQty) {
+  if (planQty === '-' || planQty === 0 || actualQty === '-' || actualQty === 0) {
+    return '-';
+  }
+  const eff = Math.round((actualQty / planQty) * 100);
   return eff > 100 ? 100 : eff;
 }
 

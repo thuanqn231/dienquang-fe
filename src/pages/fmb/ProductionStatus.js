@@ -28,7 +28,7 @@ import {
   generateData,
   generateDiff,
   generateDiffClass,
-  generateEff,
+  generatePercent,
   generateEffClass,
   generateLineClassByEff,
   generateTooltip,
@@ -153,25 +153,26 @@ export default function ProductionStatus() {
     if (response?.data && !isEmpty(response?.data)) {
       const { data } = response;
       let totalPlanQty = 0;
-      let totalTagetQty = 0;
+      // let totalTagetQty = 0;
       let totalActualQty = 0;
-      let totalItemQty = 0;
-      let totalTactTime = 0;
+      let totalGap = 0;
+      // let totalItemQty = 0;
+      // let totalTactTime = 0;
       rows = data.map((row) => {
         const linePk = `${row.linePk.factoryCode}-${row.linePk.id}`;
         const targetQty = generateData(row.targetQty);
         totalPlanQty += row.planQty ? row.planQty : 0;
-        totalTagetQty += row.targetQty ? row.targetQty : 0;
+        // totalTagetQty += row.targetQty ? row.targetQty : 0;
         totalActualQty += row.actualQty ? row.actualQty : 0;
-        totalItemQty += row.itemQty ? row.itemQty : 0;
-        totalTactTime += row.eff ? row.eff : 0;
-        const eff = generateEff(generateData(row.eff));
+        // totalItemQty += row.itemQty ? row.itemQty : 0;
+        // totalTactTime += row.eff ? row.eff : 0;
+        totalGap += row.planQty - row.actualQty;
+        const eff = generatePercent(generateData(row.planQty), generateData(row.actualQty));
+
         return {
           line: row.line,
           linePk,
           eff,
-          effClass: generateEffClass(eff),
-          lineClass: generateLineClassByEff(eff),
           modelCode: generateData(row.modelCode),
           description: generateData(row.desc),
           topModel: generateData(row.topModel),
@@ -181,21 +182,21 @@ export default function ProductionStatus() {
           diff: numberWithCommas(generateDiff(generateData(row.actualQty), targetQty)),
           diffClass: generateDiffClass(generateData(row.actualQty), targetQty),
           itemQty: generateData(row.itemQty),
+          gap: numberWithCommas(generateData(row.planQty - row.actualQty)),
           className: ''
         };
       });
-      const totalDiff = generateDiff(generateData(totalActualQty), totalTagetQty);
-      const totalDiffClass = generateDiffClass(generateData(totalActualQty), totalTagetQty);
-      const totalEff = generateEff(generateData(totalTactTime), data.length);
+      // const totalDiff = generateDiff(generateData(totalActualQty), totalTagetQty);
+      // const totalDiffClass = generateDiffClass(generateData(totalActualQty), totalTagetQty);
+      // const totalEff = generateEff(generateData(totalTactTime), data.length);
       setTotalProd({
         totalPlanQty,
-        totalTagetQty,
         totalActualQty,
-        totalDiff,
-        totalDiffClass,
-        totalItemQty,
-        totalEff,
-        totalEffClass: generateEffClass(totalEff)
+        totalGap
+        // totalDiff,
+        // totalDiffClass,
+        // totalEff,
+        // totalEffClass: generateEffClass(totalEff)
       });
     } else {
       setTotalProd({});
@@ -224,32 +225,41 @@ export default function ProductionStatus() {
                 <TableCell align="center" width="9%" key="line" className="header">
                   {translate(`fmb.line`)}
                 </TableCell>
-                <TableCell align="center" width="10%" key="modelCode" rowSpan={2} className="header">
-                  {translate(`fmb.model_code`)}
+                <TableCell align="center" width="15%" key="modelCode" rowSpan={2} className="header">
+                  {/* {translate(`fmb.model_code`)} */}
+                  MODEL NAME
                 </TableCell>
                 <TableCell align="center" key="description" rowSpan={2} className="header">
-                  {translate(`fmb.description`)}
+                  {/* {translate(`fmb.description`)} */}
+                  MODEL DESCRIPTION
                 </TableCell>
-                <TableCell align="center" width="10%" key="topModel" rowSpan={2} className="header">
-                  {translate(`fmb.top_model`)}
+                <TableCell align="center" width="13%" key="topModel" rowSpan={2} className="header">
+                  {/* {translate(`fmb.top_model`)} */}
+                  MODEL CODE
                 </TableCell>
-                <TableCell align="center" width="9%" key="eff" className="header">
+                {/* <TableCell align="center" width="9%" key="eff" className="header">
                   {translate(`fmb.eff`)}
                 </TableCell>
                 <TableCell align="center" width="9%" key="itemQty" className="header">
                   {translate(`fmb.item_qty`)}
+                </TableCell> */}
+                <TableCell align="center" width="12%" key="planQty" className="header">
+                  {/* {translate(`fmb.plan_qty`)} */}
+                  PLAN QTY
                 </TableCell>
-                <TableCell align="center" width="9%" key="planQty" className="header">
-                  {translate(`fmb.plan_qty`)}
-                </TableCell>
-                <TableCell align="center" width="9%" key="targetQty" className="header">
+                {/* <TableCell align="center" width="9%" key="targetQty" className="header">
                   {translate(`fmb.target_qty`)}
-                </TableCell>
-                <TableCell align="center" width="9%" key="actualQty" className="header">
-                  {translate(`fmb.actual_qty`)}
+                </TableCell> */}
+                <TableCell align="center" width="13%" key="actualQty" className="header">
+                  {/* {translate(`fmb.actual_qty`)} */}
+                  ACTUAL QTY
                 </TableCell>
                 <TableCell align="center" width="9%" key="diff" className="header">
-                  {translate(`fmb.diff`)}
+                  {/* {translate(`fmb.diff`)} */}
+                  GAP
+                </TableCell>
+                <TableCell align="center" width="9%" key="diff" className="header">
+                  %
                 </TableCell>
               </TableRow>
               {!isEmpty(totalProd) && !isUndefined(totalProd) && (
@@ -257,7 +267,7 @@ export default function ProductionStatus() {
                   <TableCell align="center" className="header">
                     {translate(`fmb.total`)}
                   </TableCell>
-                  <HtmlTooltip title={tooltip?.eff || ''}>
+                  {/* <HtmlTooltip title={tooltip?.eff || ''}>
                     <TableCell
                       align="right"
                       className={`header ${totalProd.totalEffClass}`}
@@ -268,8 +278,8 @@ export default function ProductionStatus() {
                     >
                       {totalProd.totalEff}
                     </TableCell>
-                  </HtmlTooltip>
-                  <TableCell
+                  </HtmlTooltip> */}
+                  {/* <TableCell
                     align="right"
                     className="header"
                     sx={{ ...(getCursor('itemQty', totalProd.totalItemQty) && { cursor: 'pointer' }) }}
@@ -280,20 +290,20 @@ export default function ProductionStatus() {
                     }}
                   >
                     {numberWithCommas(totalProd.totalItemQty)}
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell
                     align="right"
                     className="header"
                     sx={{ ...(getCursor('planQty', totalProd.totalItemQty) && { cursor: 'pointer' }) }}
-                    onClick={() => {
-                      if (getCursor('itemQty', totalProd.totalItemQty)) {
-                        showDetailViewProduction('', 'planQty');
-                      }
-                    }}
+                    // onClick={() => {
+                    //   if (getCursor('itemQty', totalProd.totalItemQty)) {
+                    //     showDetailViewProduction('', 'planQty');
+                    //   }
+                    // }}
                   >
                     {numberWithCommas(totalProd.totalPlanQty)}
                   </TableCell>
-                  <TableCell
+                  {/* <TableCell
                     align="right"
                     className="header blueColor"
                     sx={{ ...(getCursor('targetQty', totalProd.totalTagetQty) && { cursor: 'pointer' }) }}
@@ -304,18 +314,31 @@ export default function ProductionStatus() {
                     }}
                   >
                     {numberWithCommas(totalProd.totalTagetQty)}
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell
                     align="right"
                     className="header blueColor"
                     sx={{ ...(getCursor('actualQty', totalProd.totalActualQty) && { cursor: 'pointer' }) }}
-                    onClick={() => {
-                      if (getCursor('itemQty', totalProd.totalActualQty)) {
-                        showDetailViewProduction('', 'actualQty');
-                      }
-                    }}
+                    // onClick={() => {
+                    //   if (getCursor('itemQty', totalProd.totalActualQty)) {
+                    //     showDetailViewProduction('', 'actualQty');
+                    //   }
+                    // }}
                   >
                     {numberWithCommas(totalProd.totalActualQty)}
+                  </TableCell>
+
+                  <TableCell
+                    align="right"
+                    className="header blueColor"
+                    sx={{ ...(getCursor('gap', totalProd.totalGap) && { cursor: 'pointer' }) }}
+                    // onClick={() => {
+                    //   if (getCursor('itemQty', totalProd.totalActualQty)) {
+                    //     showDetailViewProduction('', 'actualQty');
+                    //   }
+                    // }}
+                  >
+                    {numberWithCommas(totalProd.totalGap)}
                   </TableCell>
                   <HtmlTooltip title={tooltip?.diff || ''}>
                     <TableCell align="right" className={`header ${totalProd.totalDiffClass}`}>
@@ -326,6 +349,7 @@ export default function ProductionStatus() {
               )}
             </TableHead>
             <TableBody>
+              {console.log('rowDatas', rowDatas)}
               {rowDatas.map((row) => (
                 <TableRow hover role="checkbox" tabIndex={-1} key={row.line}>
                   {columns.map((column) => {
@@ -349,11 +373,11 @@ export default function ProductionStatus() {
                                                     }
                                                     `}
                           sx={{ ...(showDetail && { cursor: 'pointer' }) }}
-                          onClick={() => {
-                            if (showDetail) {
-                              showDetailViewProduction(_line, column.id);
-                            }
-                          }}
+                          // onClick={() => {
+                          //   if (showDetail) {
+                          //     showDetailViewProduction(_line, column.id);
+                          //   }
+                          // }}
                         >
                           {value}
                         </TableCell>

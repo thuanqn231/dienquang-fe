@@ -56,11 +56,11 @@ const RootStyle = styled(Page)(({ theme }) => ({
 
 const TableCell = withStyles((theme) => ({
   root: {
-    height: `calc((100vh - 80px)/6)`,
+    height: `calc((100vh - 64px)/5)`,
     backgroundImage: 'none',
     padding: theme.spacing(1),
-    borderCollapse: 'collapse',
-
+    // borderCollapse: 'collapse',
+    border: '1px solid black',
     borderSpacing: 0,
     '&.header': {
       backgroundColor: '#565656',
@@ -68,9 +68,15 @@ const TableCell = withStyles((theme) => ({
       fontSize: '2.2rem'
     },
     '&.body': {
-      backgroundColor: '#282828',
+      backgroundColor: '	#FFFAFA',
+      color: theme.palette.common.black,
+      fontSize: '6rem',
+      fontWeight: 'bold'
+    },
+    '&.bodyLeft': {
       color: theme.palette.common.white,
-      fontSize: '2.5rem'
+      fontSize: '6rem',
+      fontWeight: 'bold'
     },
     '&:first-of-type': {
       paddingLeft: theme.spacing(1),
@@ -110,7 +116,7 @@ function createData(headerName, value) {
 
 let rows = [
   createData('Plan', 1200),
-  createData('Taget', 400),
+  // createData('Taget', 400),
   createData('Actual', 450),
   createData('GAP', 50),
   createData('Model', 'T4459C'),
@@ -137,7 +143,8 @@ const columns = [
   //     format: (value) => value.toFixed(2),
   // },
 ];
-const colors = ['#a8d18d', '#f4b184', '#4473c5', '#E80C7A', '#E80C7A'];
+// const colors = ['#a8d18d', '#f4b184', '#4473c5', '#E80C7A', '#E80C7A'];
+const colors = ['#a8d18d', '#4473c5', '#E80C7A', '#E80C7A'];
 export default function LineStatus() {
   const { commonDropdown } = useAuth();
   const currentIntervalID = useRef(null);
@@ -167,7 +174,7 @@ export default function LineStatus() {
     clearInterval(currentIntervalID.current);
     currentIntervalID.current = setInterval(() => {
       onLoadData();
-    }, 300000);
+    }, 120000);
 
     return () => {
       clearInterval(currentIntervalID.current);
@@ -178,11 +185,11 @@ export default function LineStatus() {
     dataChart();
     let defectDisplay = '0(0%)';
     if (rowDatas.defectQty > 0 && rowDatas.actualQty > 0) {
-      defectDisplay = `${rowDatas.defectQty}(${((rowDatas.defectQty / rowDatas.actualQty) * 100).toFixed(2)}%)`;
+      defectDisplay = `${rowDatas.defectQty}(${((rowDatas.defectQty / rowDatas.actualQty) * 100).toFixed(1)}%)`;
     }
     rows = [
       createData('Plan', numberWithCommas(generateData(rowDatas.planQty))),
-      createData('Taget', numberWithCommas(rowDatas.targetQty)),
+      // createData('Taget', numberWithCommas(rowDatas.targetQty)),
       createData('Actual', numberWithCommas(rowDatas.actualQty)),
       createData('GAP', numberWithCommas(rowDatas.gapQty)),
       createData('Model', generateData(rowDatas.modelCode)),
@@ -219,10 +226,12 @@ export default function LineStatus() {
           dataLabels: {
             enabled: true,
             align: 'center',
-            color: '#294469',
+            // color: '#294469',
+            color: 'black',
             shadow: false,
             y: -20,
-            style: { fontSize: '3rem', textShadow: '0px' }
+
+            style: { fontSize: '3rem', textShadow: '0px', fontWeight: 'bold' }
           }
         }
       },
@@ -230,11 +239,15 @@ export default function LineStatus() {
       xAxis: {
         gridLineWidth: 0,
         minorGridLineWidth: 0,
-        categories: ['Plan', 'Target', 'Actual'],
+        // categories: ['Plan', 'Target', 'Actual'],
+        categories: ['Plan', 'Actual'],
         labels: {
           skew3d: true,
+          y: 90,
           style: {
-            fontSize: '18px'
+            fontSize: '3rem',
+            color: 'black',
+            fontWeight: 'bold'
           }
         }
       },
@@ -244,7 +257,7 @@ export default function LineStatus() {
       },
       series: [
         {
-          data: [planQty, targetQty, actualQty],
+          data: [planQty, actualQty],
           name: '',
           showInLegend: false
         }
@@ -262,10 +275,12 @@ export default function LineStatus() {
       // eslint-disable-next-line prefer-destructuring
       lineCode = paramUrl[0];
     }
-    setLoading(true);
+
     console.log('lineName', commonDropdown, commonDropdown.lineDropdown);
     const lineName = commonDropdown.lineDropdown.find((line) => line.code === lineCode).label;
-    console.log('lineName', lineName);
+    if (lineName !== null) {
+      setLoading(true);
+    }
     setLineName(lineName);
     const response = await getLineStatus(prodDate, factoryCode, lineCode);
     let rowData = [];
@@ -281,6 +296,7 @@ export default function LineStatus() {
         targetQty = row.targetQty ? row.targetQty : 0;
         actualQty = row.actualQty ? row.actualQty : 0;
         defectQty = row.defectQty ? row.defectQty : 0;
+        // gapQty = actualQty - targetQty;
         gapQty = planQty - actualQty;
         return {
           modelCode: row.modelCode,
@@ -298,13 +314,15 @@ export default function LineStatus() {
   return (
     <RootStyle title="Line Status | Điện Quang">
       <FmbNavbar page="lineStatus" title={`${lineName}  ${translate(`fmb.line_status`)}`} />
-      <Paper sx={{ width: '100%', height: `calc(100vh - 70px - ${hideMenu ? 0 : 36}px)` }}>
+      <Paper sx={{ width: '100%', height: `calc(100vh - 60px - ${hideMenu ? 0 : 36}px)` }}>
         <Container sx={{ px: `0px !important` }} maxWidth={false}>
-          <Box border="1px red solid">
-            <Grid container spacing={0} sx={{ px: 0, height: `calc(100vh - 78px)` }}>
+          <Box border="1px black solid">
+            <Grid container spacing={0} sx={{ px: 0, height: `calc(100vh - 64px)` }}>
               <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%' }}>
-                  <TableContainer sx={{ height: '100%' }}>
+                <Card sx={{ height: '100%', backgroundColor: 'black' }}>
+                  {' '}
+                  {/* khi chỉnh màu  */}
+                  <TableContainer sx={{ height: '`calc(100vh - 64px)`' }}>
                     <Table stickyHeader aria-label="sticky table">
                       <TableBody>
                         {rows.map((row) => (
@@ -314,7 +332,7 @@ export default function LineStatus() {
                               if (column.id === 'headerName') {
                                 return (
                                   <Tooltip title={value}>
-                                    <TableCell key={column.id} align={column.align} className="body blueBg">
+                                    <TableCell key={column.id} align={column.align} className="body blueBg bodyLeft">
                                       {value}
                                     </TableCell>
                                   </Tooltip>
@@ -350,7 +368,11 @@ export default function LineStatus() {
 
               <Grid item xs={12} md={6}>
                 <Card sx={{ height: '100%' }}>
-                  <GlobalChart highcharts={Highcharts} options={chart} containerProps={{ style: { height: '100%' } }} />
+                  <GlobalChart
+                    highcharts={Highcharts}
+                    options={chart}
+                    containerProps={{ style: { height: '100%', fontSize: '6rem' } }}
+                  />
                 </Card>
               </Grid>
             </Grid>

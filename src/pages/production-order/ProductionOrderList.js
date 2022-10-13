@@ -1,5 +1,6 @@
 import arrowIosDownwardFill from '@iconify/icons-eva/arrow-ios-downward-fill';
 import closeFill from '@iconify/icons-eva/close-fill';
+import { LoadingButton } from '@material-ui/lab';
 import { Icon } from '@iconify/react';
 import {
   Accordion,
@@ -8,13 +9,16 @@ import {
   Box,
   Button,
   Card,
-  Container, DialogActions, Grid,
+  Container,
+  DialogActions,
+  Grid,
   IconButton,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
-  Stack, TextField,
+  Stack,
+  TextField,
   Tooltip,
   Typography
 } from '@material-ui/core';
@@ -31,7 +35,6 @@ import { DialogAnimate, DialogDragable } from '../../components/animate';
 import HeaderBreadcrumbs from '../../components/HeaderBreadcrumbs';
 import OrganizationTree from '../../components/OrganizationTree';
 import Page from '../../components/Page';
-import { UploadExcelFile } from '../../components/upload';
 import { mutate, query } from '../../core/api';
 import { Dropdown, DthButtonPermission, DthDatePicker } from '../../core/wrapper';
 import AgGrid from '../../core/wrapper/AgGrid';
@@ -56,6 +59,8 @@ import ProductionOrderRegistrationForm from './ProductionOrderRegistrationForm';
 import ProductionOrderTeco from './ProductionOrderTeco';
 
 import { DocumentRequestTypeEnum, RequestParameterTypeEnum } from '../approval/constants';
+import ProductionOrderInputActualForm from './ProductionOrderInputActualForm';
+import ProductionOrderInputDefectForm from './ProductionOrderInputDefectForm';
 
 const pageCode = 'menu.production.planningManagement.productionPlanning.planning.productionOrder';
 const tableCode = 'productionOrderList';
@@ -81,6 +86,7 @@ export default function ProductionOrderList() {
   const [gridColumnApi, setGridColumnApi] = useState(null);
   const [isOpenActionModal, setOpenActionModal] = useState(false);
   const [isOpenInfoModal, setIsOpenInfoModal] = useState(false);
+  const [tilte, setTilte] = useState('');
   const [modalAction, setModalAction] = useState('Register');
   const [currentProductionOrder, setCurrentProductionOrder] = useState({});
   const [createdPlanId, setCreatedPlanId] = useState(null);
@@ -99,7 +105,8 @@ export default function ProductionOrderList() {
   const [approvalRequestParameters, setApprovalRequestParameters] = useState([]);
   const [detailData, setDetailData] = useState({});
   const pageSelectedWidget = selectedWidget[pageCode];
-
+  const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
+  const [isSubmitting, setSubmitting] = useState(false);
   useEffect(() => {
     dispatch(getMaterialDropdown());
     dispatch(getApprovedBOMDropdown());
@@ -187,15 +194,12 @@ export default function ProductionOrderList() {
     const params = {
       from: fDate(searchParams.fromDate),
       to: fDate(searchParams.toDate),
-      aprStatus: searchParams.aprStatus,
       prodStatus: searchParams.prodStatus,
       planId: searchParams.planId,
       poNo: searchParams.poNo,
       poType: searchParams.poType,
       modelCode: searchParams.modelCode,
       modelName: searchParams.modelName,
-      topModel: searchParams.topModel,
-      process: searchParams.process,
       factoryPks: parseSelectedTree.factoryIds
     };
     parseOrgSearchAll(params, parseSelectedTree);
@@ -237,21 +241,17 @@ export default function ProductionOrderList() {
     if (rowCount === 1) {
       let isAllowEdit = false;
       let isAllowSubmit = false;
-      let isAllowTeco = false;
       const productionOrderId = event.api.getSelectedNodes()[0].data.factoryPk;
       setSubmissionRows([event.api.getSelectedNodes()[0].data]);
       setSelectedProductionOrderId(productionOrderId);
       const { aprStatus, prodStatus } = event.api.getSelectedNodes()[0].data;
-      if ((aprStatus.code === 'D018001' || aprStatus.code === 'D018004') && prodStatus.code === 'D019001') {
+      if (prodStatus.code === 'D019001') {
         isAllowEdit = true;
         isAllowSubmit = true;
       }
       setIsAllowEdit(isAllowEdit);
       setIsAllowSubmit(isAllowSubmit);
-      if (aprStatus.code !== 'D018002' && (prodStatus.code === 'D019001' || prodStatus.code === 'D019002')) {
-        isAllowTeco = true;
-      }
-      setIsAllowTeco(isAllowTeco);
+
       if (productionOrderId) {
         query({
           url: `/v1/productionOrder/${productionOrderId}`,
@@ -262,32 +262,17 @@ export default function ProductionOrderList() {
             setCurrentProductionOrder({
               factoryPk: data.factoryPk,
               factory: data.pk.factoryCode,
-              plant: {
-                factoryPk: data.plant.factoryPk,
-                name: data.plant.name
-              },
               planDate: data.planDate,
-              process: {
-                code: data.process.code,
-                name: data.process.name
-              },
-              modelId: {
-                factoryPk: data.modelId.factoryPk,
-                parentCode: {
-                  code: data.modelId.parentCode.code,
-                  materialId: data.modelId.parentCode.materialId,
-                  remark: data.modelId.parentCode.description
-                },
-                bomVersionParent: data.modelId.bomVersionParent
-              },
+              // process: {
+              //   code: data.process.code,
+              //   name: data.process.name
+              // },
+              modelId: data.modelId,
+              modelCode: data.modelCode,
+              modelDescription: data.modelDescription,
+              topModel: data.topModel,
+              modelVersion: data.modelVersion,
               pk: data.pk,
-              topModel: {
-                factoryPk: data.topModel.factoryPk,
-                parentCode: {
-                  code: data.topModel.parentCode.code
-                },
-                bomVersionParent: data.topModel.bomVersionParent
-              },
               poType: {
                 code: data.poType.code,
                 name: data.poType.name
@@ -330,11 +315,13 @@ export default function ProductionOrderList() {
   const onClickAdd = () => {
     setIsEdit(false);
     handleOpenModal('Register');
+    setTilte('Plan ID');
   };
 
-  const onClickUpload = () => {
+  const onClickInputActual = () => {
+    setTilte('Actual Production Order');
     setIsEdit(false);
-    handleOpenModal('Upload');
+    handleOpenModal('InputActual');
   };
 
   const onCellClicked = async (gridApi) => {
@@ -368,16 +355,10 @@ export default function ProductionOrderList() {
     onLoadData();
   };
 
-  const onClickSubmitApproval = async () => {
-    if (submissionRows.length === 0) {
-      selectProductionOrderWarning();
-    } else {
-      const editorValue = await generateProductionOrderHtml(submissionRows);
-      setApprovalEditor(editorValue);
-      const requestParameters = buildRequestParameters(submissionRows);
-      setApprovalRequestParameters(requestParameters);
-      setOpenCompose(true);
-    }
+  const onClickInputDefect = async () => {
+    setTilte('Defect Production Order');
+    setIsEdit(false);
+    handleOpenModal('InputDefect');
   };
 
   const buildRequestParameters = (rows) =>
@@ -435,6 +416,33 @@ export default function ProductionOrderList() {
     dispatch(resetSearchParams());
   };
 
+  const handleDelete = async () => {
+    setSubmitting(true);
+    await mutate({
+      url: `/v1/productionOrder/${selectedProductionOrderId}`,
+      method: 'delete',
+      featureCode: 'user.delete'
+    })
+      .then((res) => {
+        if (res.httpStatusCode === 200) {
+          setSubmitting(false);
+          enqueueSnackbar(translate(`message.production_order_was_delected_successfully`), {
+            variant: 'success',
+            action: (key) => (
+              <MIconButton size="small" onClick={() => closeSnackbar(key)}>
+                <Icon icon={closeFill} />
+              </MIconButton>
+            )
+          });
+          handleCloseDeleteModal();
+          onLoadData();
+        }
+      })
+      .catch((error) => {
+        setSubmitting(false);
+        console.error(error);
+      });
+  };
   const ACCORDIONS = [
     {
       value: `panel1`,
@@ -505,16 +513,7 @@ export default function ProductionOrderList() {
             fullWidth
             size="small"
           />
-          <Dropdown
-            id="aprStatus"
-            name="aprStatus"
-            label="Approval Status"
-            value={searchParams.aprStatus}
-            onChange={handleChangeSearchConfig}
-            groupId="D018000"
-            sx={{ my: 1 }}
-            size="small"
-          />
+
           <Dropdown
             id="prodStatus"
             name="prodStatus"
@@ -569,29 +568,9 @@ export default function ProductionOrderList() {
             fullWidth
             id="modelName"
             name="modelName"
-            label="Model Name"
+            label="Model Description"
             value={searchParams.modelName}
             onChange={handleChangeSearchConfig}
-            sx={{ my: 1 }}
-            size="small"
-          />
-          <TextField
-            fullWidth
-            id="topModel"
-            name="topModel"
-            label="Top Model"
-            value={searchParams.topModel}
-            onChange={handleChangeSearchConfig}
-            sx={{ my: 1 }}
-            size="small"
-          />
-          <Dropdown
-            id="process"
-            name="process"
-            label="Process Type"
-            value={searchParams.process}
-            onChange={handleChangeSearchConfig}
-            groupId="D014000"
             sx={{ my: 1 }}
             size="small"
           />
@@ -651,6 +630,29 @@ export default function ProductionOrderList() {
     setIsOpenInfoModal(false);
   };
 
+  const onClickDelete = () => {
+    if (!selectedProductionOrderId) {
+      enqueueSnackbar(translate(`message.please_select_1_row`), {
+        variant: 'warning',
+        action: (key) => (
+          <MIconButton size="small" onClick={() => closeSnackbar(key)}>
+            <Icon icon={closeFill} />
+          </MIconButton>
+        )
+      });
+    } else {
+      setIsEdit(true);
+      handleOpenDeleteModal();
+    }
+  };
+
+  const handleOpenDeleteModal = () => {
+    setIsOpenDeleteModal(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsOpenDeleteModal(false);
+  };
   return (
     <Page title={getPageName(pageCode)}>
       <Container sx={{ px: `0px !important` }} maxWidth={false}>
@@ -714,9 +716,9 @@ export default function ProductionOrderList() {
                         <DthButtonPermission
                           sx={{ marginLeft: 1 }}
                           variant="contained"
-                          onClick={onClickUpload}
+                          onClick={onClickInputActual}
                           size="small"
-                          label="Upload"
+                          label="Input Actual"
                           pageCode={pageCode}
                           widgetCode={pageSelectedWidget?.widgetCode}
                           funcType="EXECUTE"
@@ -724,13 +726,12 @@ export default function ProductionOrderList() {
                         <DthButtonPermission
                           sx={{ marginLeft: 1 }}
                           variant="contained"
-                          onClick={onClickSubmitApproval}
+                          onClick={onClickInputDefect}
                           size="small"
-                          label="Submit"
+                          label="Input Defect"
                           pageCode={pageCode}
                           widgetCode={pageSelectedWidget?.widgetCode}
                           funcType="EXECUTE"
-                          disabled={submissionRows.length === 0 || !isAllowSubmit}
                         />
                         <DthButtonPermission
                           sx={{ marginLeft: 1 }}
@@ -753,17 +754,30 @@ export default function ProductionOrderList() {
                           funcType="UPDATE"
                           disabled={!selectedProductionOrderId || !isAllowEdit}
                         />
+
                         <DthButtonPermission
+                          sx={{ marginLeft: 1 }}
+                          variant="contained"
+                          onClick={onClickDelete}
+                          size="small"
+                          label="Delete"
+                          pageCode={pageCode}
+                          widgetCode={pageSelectedWidget?.widgetCode}
+                          funcType="DELETE"
+                          disabled={!selectedProductionOrderId || !isAllowEdit}
+                        />
+                        {/* <DthButtonPermission
                           sx={{ marginLeft: 1 }}
                           variant="contained"
                           onClick={onClickTeco}
                           size="small"
-                          label="TECO"
+                          label="Delete"
                           pageCode={pageCode}
                           widgetCode={pageSelectedWidget?.widgetCode}
                           funcType="DELETE"
                           disabled={!selectedProductionOrderId || !isAllowTeco}
-                        />
+                        /> */}
+
                         {isChangedTableConfig && (
                           <DthButtonPermission
                             sx={{ marginLeft: 1 }}
@@ -804,7 +818,7 @@ export default function ProductionOrderList() {
               </Card>
               <DialogDragable
                 title={`Production Order ${modalAction}`}
-                maxWidth={['TECO', 'Upload'].includes(modalAction) ? 'sm' : 'lg'}
+                maxWidth={['TECO'].includes(modalAction) ? 'sm' : 'lg'}
                 open={isOpenActionModal}
                 onClose={handleCloseModal}
               >
@@ -818,16 +832,24 @@ export default function ProductionOrderList() {
                     onCreatePlanSuccess={onCreatePlanSuccess}
                   />
                 )}
-                {modalAction === 'Upload' && (
-                  // <ProductionOrderUpload
-                  //     onCancel={handleCloseModal}
-                  //     onLoadData={onLoadData}
-                  // />
-                  <UploadExcelFile
+                {modalAction === 'InputActual' && (
+                  <ProductionOrderInputActualForm
+                    isEdit={isEdit}
+                    currentData={currentProductionOrder}
                     onCancel={handleCloseModal}
                     onLoadData={onLoadData}
-                    templateCode="PLAN_TEMPLATE_1"
-                    isProductionOrder
+                    pageCode={pageCode}
+                    onCreatePlanSuccess={onCreatePlanSuccess}
+                  />
+                )}
+                {modalAction === 'InputDefect' && (
+                  <ProductionOrderInputDefectForm
+                    isEdit={isEdit}
+                    currentData={currentProductionOrder}
+                    onCancel={handleCloseModal}
+                    onLoadData={onLoadData}
+                    pageCode={pageCode}
+                    onCreatePlanSuccess={onCreatePlanSuccess}
                   />
                 )}
                 {modalAction === 'TECO' && (
@@ -853,7 +875,7 @@ export default function ProductionOrderList() {
                 open={isOpenInfoModal}
                 onClose={handleCloseInfoModal}
               >
-                <Typography variant="subtitle1" align="center">{`Plan ID: ${createdPlanId} ${translate(
+                <Typography variant="subtitle1" align="center">{`${tilte}: ${createdPlanId} ${translate(
                   `typo.was_created`
                 )}  ${translate(`typo.successfully`)}.`}</Typography>
                 <DialogActions>
@@ -863,6 +885,25 @@ export default function ProductionOrderList() {
                   </Button>
                 </DialogActions>
               </DialogAnimate>
+              <DialogDragable
+                title={translate(`typo.delete`)}
+                maxWidth="sm"
+                open={isOpenDeleteModal}
+                onClose={handleCloseDeleteModal}
+              >
+                <Typography variant="subtitle1" align="center">
+                  {translate(`typo.are_you_sure_to_delete`)}
+                </Typography>
+                <DialogActions>
+                  <Box sx={{ flexGrow: 1 }} />
+                  <Button type="button" variant="outlined" color="inherit" onClick={handleCloseDeleteModal}>
+                    {translate(`button.no`)}
+                  </Button>
+                  <LoadingButton type="button" variant="contained" onClick={handleDelete} loading={isSubmitting}>
+                    {translate(`button.delete`)}
+                  </LoadingButton>
+                </DialogActions>
+              </DialogDragable>
             </>
           </Grid>
         </Grid>

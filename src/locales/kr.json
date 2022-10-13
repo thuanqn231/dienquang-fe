@@ -890,12 +890,11 @@
       "line.code": "Line Code",
       "line.name": "Line Name",
       "prodOrderNo": "PO No.",
-      "modelId.parentCode.materialId": "Model ID",
-      "modelId.parentCode.code": "Model Code",
-      "modelId.parentCode.name": "Model Name",
-      "modelId.parentCode.description": "Model Desc.",
-      "modelId.bomVersionParent": "Model Version",
-      "aprStatus.name": "Approval Status",
+      "modelId": "Model ID",
+      "modelCode": "Model Code",
+      "modelName": "Model Name",
+      "modelDescription": "Model Desc.",
+      "modelVersion": "Model Version",
       "prodStatus.name": "Production Status",
       "poType.name": "PO Type",
       "startTime": "Plan Start Time",
@@ -909,13 +908,12 @@
       "tactTime": "Tact Time",
       "plant.name": "Plant",
       "operation": "Operation",
-      "process.name": "Process Type",
+      "process.name": "Process",
       "planId": "Plan ID",
       "topPO": "Top PO",
       "topModel.parentCode.code": "Top Model Code",
-      "topModel.parentCode.name": "Top Model Name",
-      "teco.name": "TECO Reason",
-      "tecoRemark": "TECO Remark",
+      "topModel": "Top Model Name",
+
       "state": "Use (Y/N)",
       "usrLogI": "Registered By",
       "dteLogI": "Registered Date",
@@ -936,6 +934,18 @@
       "tactTime": "Tact Time",
       "poType.name": "PO Type",
       "planQty": "Plan Qty"
+    },
+    "productionOrderInputActualForm": {
+      "row_index": "No.",
+      "intputTime": "Time",
+      "workStation.name": "Work Station",
+      "prodQty": "Actual Qty"
+    },
+    "productionOrderInputDefectForm": {
+      "row_index": "No.",
+      "intputTime": "Time",
+      "workStation.name": "Work Station",
+      "defectQty": "Defect Qty"
     },
     "businessPartnerGroupList": {
       "row_index": "No.",
@@ -2541,7 +2551,8 @@
     "register_factory_sample_rule_successful": "Factory Sample Rule was created successfully",
     "update_factory_sample_rule_successful": "Factory Sample Rule was updated successfully",
     "factory_sample_rules_delete_successful": "Factory Sample Rule was deleted successfully",
-    "please_select_1_factory_sample_rules": "Please select 1 Factory Sample Rule"
+    "please_select_1_factory_sample_rules": "Please select 1 Factory Sample Rule",
+    "production_order_was_delected_successfully": "Production Order was delected successfully"
   },
   "fmb": {
     "production_status": "Production Status",

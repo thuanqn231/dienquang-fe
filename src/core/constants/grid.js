@@ -25,6 +25,8 @@ import { workstationGridConfig } from './grid/workstationGridConfig';
 import { zoneGridConfig } from './grid/zoneGridConfig';
 import { productionOrderGridConfig } from './grid/productionOrderGridConfig';
 import { productionOrderRegistrationGridConfig } from './grid/productionOrderRegistrationGridConfig';
+import { productionOrderInputActualGridConfig } from './grid/productionOrderInputActualGridConfig';
+import { productionOrderInputDefectGridConfig } from './grid/productionOrderInputDefectGridConfig';
 import { productionOrderSummaryGridConfig } from './grid/productionOrderSummaryGridConfig';
 import { productionOrderDetailGridConfig } from './grid/productionOrderDetailGridConfig';
 import { businessPartnerGroupGridConfig } from './grid/businessPartnerGroupGridConfig';
@@ -241,6 +243,16 @@ export const userGridConfig = [
     featureCode: 'menu.production.planningManagement.productionPlanning.planning.productionOrder',
     agGridId: 'productionOrderRegistrationForm',
     agGridConfig: JSON.stringify(productionOrderRegistrationGridConfig)
+  },
+  {
+    featureCode: 'menu.production.planningManagement.productionPlanning.planning.productionOrder',
+    agGridId: 'productionOrderInputActualForm',
+    agGridConfig: JSON.stringify(productionOrderInputActualGridConfig)
+  },
+  {
+    featureCode: 'menu.production.planningManagement.productionPlanning.planning.productionOrder',
+    agGridId: 'productionOrderInputDefectForm',
+    agGridConfig: JSON.stringify(productionOrderInputDefectGridConfig)
   },
   {
     featureCode: 'menu.production.planningManagement.productionPlanning.planning.productionOrder',
