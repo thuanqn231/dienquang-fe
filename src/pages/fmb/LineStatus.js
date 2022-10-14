@@ -174,7 +174,7 @@ export default function LineStatus() {
     clearInterval(currentIntervalID.current);
     currentIntervalID.current = setInterval(() => {
       onLoadData();
-    }, 120000);
+    }, 60000);
 
     return () => {
       clearInterval(currentIntervalID.current);

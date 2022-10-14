@@ -31,6 +31,7 @@ export const columnsProductionStatus = [
   { id: 'modelCode', minWidth: 100, align: 'center' },
   { id: 'planQty', minWidth: 100, align: 'right' },
   { id: 'actualQty', minWidth: 100, align: 'right' },
+  { id: 'defectQty', minWidth: 100, align: 'right' },
   { id: 'gap', minWidth: 100, align: 'right' },
   { id: 'eff', minWidth: 100, align: 'right' }
   // { id: 'actualQty', minWidth: 100, align: 'right' },

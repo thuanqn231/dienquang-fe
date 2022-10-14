@@ -127,7 +127,7 @@ export default function ProductionStatus() {
     clearInterval(currentIntervalID.current);
     currentIntervalID.current = setInterval(() => {
       onLoadData();
-    }, 300000);
+    }, 60000);
 
     return () => {
       clearInterval(currentIntervalID.current);
@@ -156,7 +156,7 @@ export default function ProductionStatus() {
       // let totalTagetQty = 0;
       let totalActualQty = 0;
       let totalGap = 0;
-      // let totalItemQty = 0;
+      let totalDefectQty = 0;
       // let totalTactTime = 0;
       rows = data.map((row) => {
         const linePk = `${row.linePk.factoryCode}-${row.linePk.id}`;
@@ -164,6 +164,8 @@ export default function ProductionStatus() {
         totalPlanQty += row.planQty ? row.planQty : 0;
         // totalTagetQty += row.targetQty ? row.targetQty : 0;
         totalActualQty += row.actualQty ? row.actualQty : 0;
+        totalDefectQty += row.defectQty ? row.defectQty : 0;
+
         // totalItemQty += row.itemQty ? row.itemQty : 0;
         // totalTactTime += row.eff ? row.eff : 0;
         totalGap += row.planQty - row.actualQty;
@@ -177,6 +179,7 @@ export default function ProductionStatus() {
           description: generateData(row.desc),
           topModel: generateData(row.topModel),
           planQty: numberWithCommas(generateData(row.planQty)),
+          defectQty: numberWithCommas(generateData(row.defectQty)),
           targetQty: numberWithCommas(targetQty),
           actualQty: numberWithCommas(generateData(row.actualQty)),
           diff: numberWithCommas(generateDiff(generateData(row.actualQty), targetQty)),
@@ -189,11 +192,13 @@ export default function ProductionStatus() {
       // const totalDiff = generateDiff(generateData(totalActualQty), totalTagetQty);
       // const totalDiffClass = generateDiffClass(generateData(totalActualQty), totalTagetQty);
       // const totalEff = generateEff(generateData(totalTactTime), data.length);
+      const totalDiff = generatePercent(generateData(totalPlanQty), generateData(totalActualQty));
       setTotalProd({
         totalPlanQty,
         totalActualQty,
-        totalGap
-        // totalDiff,
+        totalDefectQty,
+        totalGap,
+        totalDiff
         // totalDiffClass,
         // totalEff,
         // totalEffClass: generateEffClass(totalEff)
@@ -233,7 +238,7 @@ export default function ProductionStatus() {
                   {/* {translate(`fmb.description`)} */}
                   MODEL DESCRIPTION
                 </TableCell>
-                <TableCell align="center" width="13%" key="topModel" rowSpan={2} className="header">
+                <TableCell align="center" width="12%" key="topModel" rowSpan={2} className="header">
                   {/* {translate(`fmb.top_model`)} */}
                   MODEL CODE
                 </TableCell>
@@ -243,16 +248,19 @@ export default function ProductionStatus() {
                 <TableCell align="center" width="9%" key="itemQty" className="header">
                   {translate(`fmb.item_qty`)}
                 </TableCell> */}
-                <TableCell align="center" width="12%" key="planQty" className="header">
+                <TableCell align="center" width="11%" key="planQty" className="header">
                   {/* {translate(`fmb.plan_qty`)} */}
                   PLAN QTY
                 </TableCell>
                 {/* <TableCell align="center" width="9%" key="targetQty" className="header">
                   {translate(`fmb.target_qty`)}
                 </TableCell> */}
-                <TableCell align="center" width="13%" key="actualQty" className="header">
+                <TableCell align="center" width="11%" key="actualQty" className="header">
                   {/* {translate(`fmb.actual_qty`)} */}
                   ACTUAL QTY
+                </TableCell>
+                <TableCell align="center" width="11%" key="diff" className="header">
+                  DEFECT QTY
                 </TableCell>
                 <TableCell align="center" width="9%" key="diff" className="header">
                   {/* {translate(`fmb.diff`)} */}
@@ -327,10 +335,22 @@ export default function ProductionStatus() {
                   >
                     {numberWithCommas(totalProd.totalActualQty)}
                   </TableCell>
+                  <TableCell
+                    align="right"
+                    className="header"
+                    sx={{ ...(getCursor('defectQty', totalProd.totalDefectQty) && { cursor: 'pointer' }) }}
+                    // onClick={() => {
+                    //   if (getCursor('itemQty', totalProd.totalItemQty)) {
+                    //     showDetailViewProduction('', 'planQty');
+                    //   }
+                    // }}
+                  >
+                    {numberWithCommas(totalProd.totalDefectQty)}
+                  </TableCell>
 
                   <TableCell
                     align="right"
-                    className="header blueColor"
+                    className="header"
                     sx={{ ...(getCursor('gap', totalProd.totalGap) && { cursor: 'pointer' }) }}
                     // onClick={() => {
                     //   if (getCursor('itemQty', totalProd.totalActualQty)) {
@@ -340,11 +360,11 @@ export default function ProductionStatus() {
                   >
                     {numberWithCommas(totalProd.totalGap)}
                   </TableCell>
-                  <HtmlTooltip title={tooltip?.diff || ''}>
-                    <TableCell align="right" className={`header ${totalProd.totalDiffClass}`}>
-                      {numberWithCommas(totalProd.totalDiff)}
-                    </TableCell>
-                  </HtmlTooltip>
+                  {/* <HtmlTooltip title={tooltip?.diff || ''}> */}
+                  <TableCell align="right" className={`header ${totalProd.totalDiffClass}`}>
+                    {numberWithCommas(totalProd.totalDiff)}
+                  </TableCell>
+                  {/* </HtmlTooltip> */}
                 </TableRow>
               )}
             </TableHead>
