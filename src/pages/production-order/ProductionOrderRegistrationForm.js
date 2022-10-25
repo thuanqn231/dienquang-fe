@@ -499,11 +499,12 @@ export default function ProductionOrderRegistrationForm({
           factoryPk: currentLine,
           name: currentLineObj[0].label
         },
-        startTime: values?.planStartDate,
-        endTime: values?.planEndDate,
+        startTime: new Date(values?.planStartDate),
+        endTime: new Date(values?.planEndDate),
         tactTime: values.tactTime,
         planQty: values.planQty
       };
+      // console.log('currentRowData', currentRowData);
       updateData(currentRowData);
       clearOldValue();
     } else {
@@ -560,6 +561,7 @@ export default function ProductionOrderRegistrationForm({
       rowData.forEach((row) => {
         delete row.factoryPk;
       });
+      console.log('rowData', rowData);
       try {
         mutate({
           url: '/v1/productionOrder/create-v2',
