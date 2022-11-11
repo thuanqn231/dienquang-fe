@@ -48,6 +48,16 @@ export const columnsStuffingStatus = [
   { id: 'balanceIncStock', minWidth: 100, align: 'right' }
 ];
 
+export const columnsMachineOperationStatus = [
+  { id: 'modelCode', minWidth: 100, align: 'center' },
+  { id: 'planQty', minWidth: 100, align: 'right' },
+  { id: 'resultQty', minWidth: 100, align: 'right' },
+  { id: 'remainQty', minWidth: 100, align: 'right' },
+  { id: 'stock', minWidth: 100, align: 'right' },
+  { id: 'stockRate', minWidth: 100, align: 'right' },
+  { id: 'balanceIncStock', minWidth: 100, align: 'right' }
+];
+
 const TableCellTooltip = withStyles((theme) => ({
   root: {
     backgroundImage: 'none',
@@ -304,6 +314,16 @@ export async function getStuffingStatus(planDate, factoryCode) {
     url: `/v1/fmb/stuffing`,
     params: {
       planDate,
+      factoryCode
+    },
+    featureCode: 'user.create'
+  });
+  return response;
+}
+export async function getMachineOperationStatus(factoryCode) {
+  const response = await query({
+    url: `/v1/fmb/machine`,
+    params: {
       factoryCode
     },
     featureCode: 'user.create'

@@ -341,7 +341,10 @@
     "authoriry_registration": "Authoriry Registration",
     "user_information_upload": "User Information Upload",
     "line_stock_adjustment_history": "Line Stock Adjustment History",
-    "do_you_want_to_process": "Do you want to process?"
+    "do_you_want_to_process": "Do you want to process?",
+    "material": "MATERIAL :",
+    "line": "LINE :",
+    "status": "STATUS :"
   },
   "placeholder": {
     "search_user": "사용자 검색..."
@@ -2558,6 +2561,7 @@
     "production_status": "Production Status",
     "stuffing_status": "Stuffing Status",
     "line_status": "Line Status",
+    "machine_operation": "Machine Operation Eficiency",
     "line": "LINE",
     "model_code": "모델",
     "description": "DESCRIPTION",

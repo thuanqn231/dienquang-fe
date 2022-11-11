@@ -135,13 +135,6 @@ const columns = [
       }
     }
   }
-  // {
-  //     id: 'density',
-  //     label: 'Density',
-  //     minWidth: 170,
-  //     align: 'right',
-  //     format: (value) => value.toFixed(2),
-  // },
 ];
 // const colors = ['#a8d18d', '#f4b184', '#4473c5', '#E80C7A', '#E80C7A'];
 const colors = ['#a8d18d', '#4473c5', '#E80C7A', '#E80C7A'];

@@ -26,13 +26,17 @@ const externalLinks = [
     link: '/fmb/F01010101/FAC01',
     label: 'Production Status'
   },
-  {
-    link: '/fmb/F01010102/FAC01',
-    label: 'Stuffing Status'
-  },
+  // {
+  //   link: '/fmb/F01010102/FAC01',
+  //   label: 'Stuffing Status'
+  // },
   {
     link: '/fmb/F01010103/FAC01/RO01',
     label: 'Line Status'
+  },
+  {
+    link: '/fmb/F01010104/FAC01',
+    label: 'Machine Status'
   }
 ];
 

@@ -192,7 +192,9 @@ export default function Router() {
         { path: 'MD01030103', element: <FactorySampleRulesList /> },
         { path: 'FB01010101', children: [{ path: '', element: <Navigate to="/fmb/F01010101/FAC01" replace /> }] },
         { path: 'FB01010201', children: [{ path: '', element: <Navigate to="/fmb/F01010102/FAC01" replace /> }] },
-        { path: 'FB01010201', children: [{ path: '', element: <Navigate to="/fmb/F01010103/FAC01/RO01" replace /> }] }
+        // { path: 'F01010104', children: [{ path: '', element: <Navigate to="/fmb/F01010104/FAC01" replace /> }] },
+        { path: 'FB01010201', children: [{ path: '', element: <Navigate to="/fmb/F01010103/FAC01/RO01" replace /> }] },
+        { path: 'F01010104', children: [{ path: '', element: <Navigate to="/fmb/F01010104/FAC01" replace /> }] }
         // { path: 'demo-grid', element: <DemoGrid /> }
       ]
     },
@@ -209,7 +211,8 @@ export default function Router() {
         },
         { path: 'F01010101/:factoryCode', element: <ProductionStatus /> },
         { path: 'F01010102/:factoryCode', element: <StuffingStatus /> },
-        { path: 'F01010103/:factoryCode/:lineCode', element: <LineStatus /> }
+        { path: 'F01010103/:factoryCode/:lineCode', element: <LineStatus /> },
+        { path: 'F01010104/:factoryCode', element: <MachineOperationStatus /> }
       ]
     },
 
@@ -275,6 +278,7 @@ const UserInformationList = Loadable(lazy(() => import('../pages/user-informatio
 const RoleMasterList = Loadable(lazy(() => import('../pages/role-master/RoleMasterList')));
 const ProductionStatus = Loadable(lazy(() => import('../pages/fmb/ProductionStatus')));
 const StuffingStatus = Loadable(lazy(() => import('../pages/fmb/StuffingStatus')));
+const MachineOperationStatus = Loadable(lazy(() => import('../pages/fmb/MachineOperationStatus')));
 const LineStatus = Loadable(lazy(() => import('../pages/fmb/LineStatus')));
 const ProductionResult = Loadable(lazy(() => import('../pages/oi/ProductionResult')));
 const UOMList = Loadable(lazy(() => import('../pages/uom/UOMList')));

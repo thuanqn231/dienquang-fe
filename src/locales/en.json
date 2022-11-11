@@ -365,7 +365,10 @@
     "defect_cause_class": "Defect Cause Class",
     "defect_cause_detail": "Defect Cause Detail",
     "inspection_item_class": "Inspection Item Class",
-    "inspection_item_detail": "Inspection Item Detail"
+    "inspection_item_detail": "Inspection Item Detail",
+    "material": "MATERIAL :",
+    "line": "LINE :",
+    "status": "STATUS :"
   },
   "placeholder": {
     "search_user": "Search User..."
@@ -2775,6 +2778,7 @@
   "fmb": {
     "production_status": "Production Status",
     "stuffing_status": "Stuffing Status",
+    "machine_operation": "Machine Operation Eficiency",
     "line_status": "Line Status",
     "line": "LINE",
     "model_code": "MODEL",

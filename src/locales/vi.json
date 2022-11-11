@@ -341,7 +341,10 @@
     "authoriry_registration": "Đăng Ký Quyền",
     "user_information_upload": "Tải Lên Thông Tin Người Dùng",
     "line_stock_adjustment_history": "Line Stock Adjustment History",
-    "do_you_want_to_process": "Do you want to process?"
+    "do_you_want_to_process": "Do you want to process?",
+    "material": "MATERIAL :",
+    "line": "LINE :",
+    "status": "STATUS :"
   },
   "placeholder": {
     "search_user": "Tìm kiếm người dùng..."
@@ -2548,6 +2551,7 @@
   "fmb": {
     "production_status": "Trạng thái sản xuất",
     "stuffing_status": "Stuffing Status",
+    "machine_operation": "Machine Operation Eficiency",
     "line_status": "Line Status",
     "line": "DÂY CHUYỀN",
     "model_code": "MODEL",
