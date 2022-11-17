@@ -928,6 +928,7 @@
     "productionOrderRegistrationForm": {
       "row_index": "STT",
       "planDate": "Ngày lập kế hoạch",
+      "prodOrderNo": "Số PO",
       "modelId.parentCode.code": "Mã Model",
       "modelId.parentCode.materialId": "ID Model",
       "modelId.bomVersionParent": "Version Model",
@@ -2546,7 +2547,8 @@
     "update_factory_sample_rule_successful": "Factory Sample Rule was updated successfully",
     "factory_sample_rules_delete_successful": "Factory Sample Rule was deleted successfully",
     "please_select_1_factory_sample_rules": "Please select 1 Factory Sample Rule",
-    "production_order_was_delected_successfully": "Xóa kế hoạch sản xuất thành công"
+    "production_order_was_delected_successfully": "Xóa kế hoạch sản xuất thành công",
+    "production_order_no_already_exist": "Số kế hoạch sản xuất đã tồn tại."
   },
   "fmb": {
     "production_status": "Trạng thái sản xuất",

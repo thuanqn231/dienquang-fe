@@ -368,6 +368,23 @@ export default function ProductionOrderRegistrationForm({
   const handleAddProductionOrder = () => {
     console.log('values', values);
     validateForm();
+    let isDuplicate = false;
+    rowData.forEach((e) => {
+      if (e.prodOrderNo === values.prodOrderNo) {
+        isDuplicate = true;
+      }
+    });
+    if (isDuplicate) {
+      enqueueSnackbar(translate(`message.production_order_no_already_exist`), {
+        variant: 'warning',
+        action: (key) => (
+          <MIconButton size="small" onClick={() => closeSnackbar(key)}>
+            <Icon icon={closeFill} />
+          </MIconButton>
+        )
+      });
+      return;
+    }
     const newRowData = [...rowData];
     const currentFactory = values.factory;
     const currentOperation = values.operation;
@@ -379,6 +396,7 @@ export default function ProductionOrderRegistrationForm({
     newRowData.push({
       factoryPk: `tmpId${rowIndex}`,
       planDate: values.planDate,
+      prodOrderNo: values.prodOrderNo,
       modelCode: values.modelCode,
       modelId: values.modelId,
       modelDescription: values.modelDescription,
@@ -404,13 +422,13 @@ export default function ProductionOrderRegistrationForm({
       pk: {
         factoryCode: values.factory
       },
-      state: 'RUNNING'
+      state: 'RUNNING',
+      type: 'Add'
     });
     setHeader({
       factory: values.factory,
       operation: values.operation
     });
-    console.log('newRowData', newRowData);
     updateData(newRowData);
     setRowIndex(rowIndex + 1);
     resetForm();
@@ -457,8 +475,10 @@ export default function ProductionOrderRegistrationForm({
     formik.setFieldValue('poType', getSafeValue(data?.poType?.code));
     formik.setFieldValue('line', getSafeValue(data?.line?.factoryPk));
     formik.setFieldValue('modelCode', getSafeValue(data?.modelCode));
+    formik.setFieldValue('prodOrderNo', getSafeValue(data?.prodOrderNo));
     formik.setFieldValue('modelId', getSafeValue(data?.modelId));
     setFieldValue('modelCode', getSafeValue(data?.modelCode));
+    setFieldValue('prodOrderNo', getSafeValue(data?.prodOrderNo));
     setFieldValue('modelDescription', getSafeValue(data?.modelDescription));
     setFieldValue('modelId', getSafeValue(data?.modelId));
     setFieldValue('modelVersion', getSafeValue(data?.modelVersion));
@@ -483,10 +503,38 @@ export default function ProductionOrderRegistrationForm({
       const currentLineObj = commonDropdown.lineDropdown.filter((line) => line.value === currentLine);
       const currentPOTypeObj = commonDropdown.commonCodes.filter((commonCode) => commonCode.code === currentPOType);
 
+      let isPOChange = false;
+      if (currentRowData[selectedIdx].type !== 'Add') {
+        if (currentRowData[selectedIdx].prodOrderNo !== values.prodOrderNo) {
+          isPOChange = true;
+        }
+      }
+
+      if (isPOChange) {
+        let isDuplicate = false;
+        currentRowData.forEach((e) => {
+          if (e.prodOrderNo === values.prodOrderNo) {
+            isDuplicate = true;
+          }
+        });
+        if (isDuplicate) {
+          enqueueSnackbar(translate(`message.production_order_no_already_exist`), {
+            variant: 'warning',
+            action: (key) => (
+              <MIconButton size="small" onClick={() => closeSnackbar(key)}>
+                <Icon icon={closeFill} />
+              </MIconButton>
+            )
+          });
+          return;
+        }
+      }
+
       currentRowData[selectedIdx] = {
         ...currentRowData[selectedIdx],
         planDate: values?.planDate,
         modelCode: values.modelCode,
+        prodOrderNo: values.prodOrderNo,
         modelId: values.modelId,
         modelDescription: values.modelDescription,
         topModel: values.topModel,
@@ -502,7 +550,8 @@ export default function ProductionOrderRegistrationForm({
         startTime: new Date(values?.planStartDate),
         endTime: new Date(values?.planEndDate),
         tactTime: values.tactTime,
-        planQty: values.planQty
+        planQty: values.planQty,
+        type: 'Modify'
       };
       // console.log('currentRowData', currentRowData);
       updateData(currentRowData);
@@ -596,6 +645,7 @@ export default function ProductionOrderRegistrationForm({
           factoryPk: currentData?.factoryPk,
           planDate: values.planDate,
           modelCode: values.modelCode,
+          prodOrderNo: values.prodOrderNo,
           modelId: values.modelId,
           modelDescription: values.modelDescription,
           topModel: values.topModel,
@@ -657,6 +707,7 @@ export default function ProductionOrderRegistrationForm({
     factory: Yup.string().required('Factory is required'),
     operation: Yup.string().required('Operation is required'),
     planDate: Yup.date().required('Plan Date is required'),
+    prodOrderNo: Yup.string().required('Production Order No is required'),
     modelCode: Yup.string().required('Model Code is required'),
     modelId: Yup.string().required('Model Id is required'),
     modelDescription: Yup.string(),
@@ -676,6 +727,7 @@ export default function ProductionOrderRegistrationForm({
       factory: (isEdit && currentData?.factory) || '',
       operation: (isEdit && currentData?.operation) || '',
       planDate: (isEdit && currentData?.planDate) || fDate(new Date()),
+      prodOrderNo: (isEdit && currentData?.prodOrderNo) || '',
       modelCode: (isEdit && currentData?.modelCode) || '',
       modelId: (isEdit && currentData?.modelId) || '',
       modelDescription: (isEdit && currentData?.modelDescription) || '',
@@ -812,6 +864,16 @@ export default function ProductionOrderRegistrationForm({
                       size="small"
                       required
                       errorMessage={touched.planDate && errors.planDate}
+                    />
+                    <TextField
+                      autoComplete="off"
+                      fullWidth
+                      label="PO No."
+                      size="small"
+                      required
+                      {...getFieldProps('prodOrderNo')}
+                      error={Boolean(touched.prodOrderNo && errors.prodOrderNo)}
+                      helperText={touched.prodOrderNo && errors.prodOrderNo}
                     />
                     <TextField
                       autoComplete="off"

@@ -39,6 +39,15 @@ export const productionOrderRegistrationGridConfig = [
   {
     ...defaultColDef,
     suppressMovable: true,
+    field: 'prodOrderNo',
+    headerName: 'PO No.',
+    colId: 'prodOrderNo',
+    width: 120,
+    pinned: 'left'
+  },
+  {
+    ...defaultColDef,
+    suppressMovable: true,
     field: 'modelCode',
     headerName: 'Model Code',
     colId: 'modelCode',

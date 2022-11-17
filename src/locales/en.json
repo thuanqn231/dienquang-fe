@@ -968,6 +968,7 @@
     "productionOrderRegistrationForm": {
       "row_index": "No.",
       "planDate": "Plan Date",
+      "prodOrderNo": "PO No.",
       "modelId.parentCode.code": "Model Code",
       "modelId.parentCode.materialId": "Model ID",
       "modelId.bomVersionParent": "Model Version",
@@ -2773,7 +2774,8 @@
     "update_factory_sample_rule_successful": "Factory Sample Rule was updated successfully",
     "factory_sample_rules_delete_successful": "Factory Sample Rule was deleted successfully",
     "please_select_1_factory_sample_rules": "Please select 1 Factory Sample Rule",
-    "production_order_was_delected_successfully": "Production Order was delected successfully"
+    "production_order_was_delected_successfully": "Production Order was delected successfully",
+    "production_order_no_already_exist": "PO No already exist"
   },
   "fmb": {
     "production_status": "Production Status",

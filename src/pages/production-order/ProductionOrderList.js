@@ -269,6 +269,7 @@ export default function ProductionOrderList() {
               // },
               modelId: data.modelId,
               modelCode: data.modelCode,
+              prodOrderNo: data.prodOrderNo,
               modelDescription: data.modelDescription,
               topModel: data.topModel,
               modelVersion: data.modelVersion,

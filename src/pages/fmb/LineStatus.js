@@ -269,12 +269,10 @@ export default function LineStatus() {
       lineCode = paramUrl[0];
     }
 
-    console.log('lineName', commonDropdown, commonDropdown.lineDropdown);
-    const lineName = commonDropdown.lineDropdown.find((line) => line.code === lineCode).label;
-    if (lineName !== null) {
+    if (lineCode !== null) {
       setLoading(true);
     }
-    setLineName(lineName);
+
     const response = await getLineStatus(prodDate, factoryCode, lineCode);
     let rowData = [];
     if (response?.data && !isEmpty(response?.data)) {
@@ -291,6 +289,7 @@ export default function LineStatus() {
         defectQty = row.defectQty ? row.defectQty : 0;
         // gapQty = actualQty - targetQty;
         gapQty = planQty - actualQty;
+        setLineName(row.lineName);
         return {
           modelCode: row.modelCode,
           planQty: row.planQty,
@@ -300,9 +299,9 @@ export default function LineStatus() {
           defectQty
         };
       });
+      console.log('rows', rowData[0]);
+      setRowDatas(rowData[0]);
     }
-    console.log('rows', rowData[0]);
-    setRowDatas(rowData[0]);
   };
   return (
     <RootStyle title="Line Status | Điện Quang">
