@@ -320,11 +320,12 @@ export async function getStuffingStatus(planDate, factoryCode) {
   });
   return response;
 }
-export async function getMachineOperationStatus(factoryCode) {
+export async function getMachineOperationStatus(factoryCode, planDate) {
   const response = await query({
     url: `/v1/fmb/machine`,
     params: {
-      factoryCode
+      factoryCode,
+      planDate
     },
     featureCode: 'user.create'
   });

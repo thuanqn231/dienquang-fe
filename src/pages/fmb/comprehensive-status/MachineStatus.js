@@ -46,7 +46,7 @@ LinearProgressWithLabel.propTypes = {
 MachineStatus.propTypes = {
   currentData: PropTypes.object
 };
-export default function MachineStatus(currentData) {
+export default function MachineStatus({ currentData }) {
   const [currentValue, setCurrentValue] = useState({
     title: '',
     material: '',
@@ -55,9 +55,9 @@ export default function MachineStatus(currentData) {
   });
 
   useEffect(() => {
-    if (!isEmpty(currentData.currentData)) {
-      console.log('data', currentData.currentData);
-      setCurrentValue(currentData.currentData);
+    if (!isEmpty(currentData)) {
+      console.log('data', currentData);
+      setCurrentValue(currentData);
       //   setCurrentValue({
       //     title: 'SMD-3234-005',
       //     material: 'T342232C',

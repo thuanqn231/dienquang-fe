@@ -127,12 +127,13 @@ export default function MachineOperationStatus() {
   };
 
   const onLoadData = async () => {
-    const response = await getMachineOperationStatus(factoryCode);
+    const today = new Date().toISOString().slice(0, 10);
+    const response = await getMachineOperationStatus(factoryCode, today);
 
     if (response?.data && !isEmpty(response?.data)) {
       const { data } = response;
+      setRowDatas(data);
     }
-    setRowDatas(data);
   };
 
   const showDetailViewStuffing = (modelCode, column) => {
@@ -178,7 +179,7 @@ export default function MachineOperationStatus() {
       <FmbNavbar2 page="stuffingStatus" title={translate(`fmb.machine_operation`)} />
       <Paper sx={{ width: '100%', height: `calc(100vh - 70px - ${hideMenu ? 0 : 36}px)` }}>
         <TableContainer sx={{ height: '100%' }}>
-          <ComprehensiveStatus currentData={data} />
+          <ComprehensiveStatus currentData={rowDatas} />
         </TableContainer>
       </Paper>
     </RootStyle>
